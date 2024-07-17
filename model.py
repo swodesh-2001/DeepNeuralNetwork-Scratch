@@ -2,21 +2,21 @@ import numpy as np
 from utils import *
 
 class DeepNeuralNetwork:
-    def __init__(self, layer_dims , hidden_layer_activation : str, output_layer_activation : str, loss_function : str):
+    def __init__(self, layer_dims, hidden_layer_activation, output_layer_activation, loss_function):
         self.layer_dims = layer_dims
         self.parameters = self.initialize_parameters(layer_dims)
         self.hidden_layer_activation = hidden_layer_activation
         self.output_layer_activation = output_layer_activation
         self.loss_function = loss_function
         self.costs = []
-        
+
     def initialize_parameters(self, layer_dims):
         parameters = {}
         L = len(layer_dims)
 
         for l in range(1, L):
-            parameters['W' + str(l)] = np.random.randn(layer_dims[l], layer_dims[l-1]) * 0.01
-            parameters['b' + str(l)] = np.zeros((layer_dims[l], 1))
+            parameters['W' + str(l)] = np.random.randn(layer_dims[l], layer_dims[l-1]) * 0.1
+            parameters['b' + str(l)] = np.zeros((layer_dims[l], 1)) * 0.1
 
             assert(parameters['W' + str(l)].shape == (layer_dims[l], layer_dims[l-1]))
             assert(parameters['b' + str(l)].shape == (layer_dims[l], 1))
@@ -41,6 +41,9 @@ class DeepNeuralNetwork:
         elif activation == "tanh":
             Z, linear_cache = self.linear_forward(A_prev, W, b)
             A, activation_cache = tanh(Z)
+        elif activation =="linear" :
+            Z, linear_cache = self.linear_forward(A_prev, W, b)
+            A,activation_cache = Z,Z
         else:
             raise ValueError("Invalid activation function. Supported activations: 'sigmoid', 'relu', 'leaky_relu', 'tanh'")
 
@@ -55,11 +58,11 @@ class DeepNeuralNetwork:
         L = len(self.parameters) // 2
 
         for l in range(1, L):
-            A_prev = A 
-            A, cache = self.linear_activation_forward(A_prev, self.parameters['W' + str(l)], self.parameters['b' + str(l)], activation= self.hidden_layer_activation)
+            A_prev = A
+            A, cache = self.linear_activation_forward(A_prev, self.parameters['W' + str(l)], self.parameters['b' + str(l)], activation=self.hidden_layer_activation)
             caches.append(cache)
 
-        AL, cache = self.linear_activation_forward(A, self.parameters['W' + str(L)], self.parameters['b' + str(L)], activation= self.output_layer_activation)
+        AL, cache = self.linear_activation_forward(A, self.parameters['W' + str(L)], self.parameters['b' + str(L)], activation=self.output_layer_activation)
         caches.append(cache)
 
         assert(AL.shape == (1, X.shape[1]))
@@ -67,17 +70,6 @@ class DeepNeuralNetwork:
         return AL, caches
 
     def compute_cost(self, AL, Y, loss_type='cross_entropy'):
-        """
-        Compute the cost based on the specified loss type.
-
-        Parameters:
-        AL -- probability vector corresponding to the label predictions, shape (1, number of examples)
-        Y -- true "label" vector, shape (1, number of examples)
-        loss_type -- the type of loss function to use ('cross_entropy', 'mse', 'mae')
-
-        Returns:
-        cost -- the cost value
-        """
         m = Y.shape[1]
         
         if loss_type == 'cross_entropy':
@@ -98,8 +90,8 @@ class DeepNeuralNetwork:
         A_prev, W, b = cache
         m = A_prev.shape[1]
 
-        dW = (1/m) * np.dot(dZ, A_prev.T)
-        db = (1/m) * np.sum(dZ, axis=1, keepdims=True)
+        dW = (1./m) * np.dot(dZ, A_prev.T)
+        db = (1./m) * np.sum(dZ, axis=1, keepdims=True)
         dA_prev = np.dot(W.T, dZ)
 
         assert (dA_prev.shape == A_prev.shape)
@@ -119,6 +111,8 @@ class DeepNeuralNetwork:
             dZ = leaky_relu_backward(dA, activation_cache)
         elif activation == "tanh":
             dZ = tanh_backward(dA, activation_cache)
+        elif activation == "linear":
+            dZ = dA
         else:
             raise ValueError("Invalid activation function. Supported activations: 'sigmoid', 'relu', 'leaky_relu', 'tanh'")
 
@@ -132,14 +126,19 @@ class DeepNeuralNetwork:
         m = AL.shape[1]
         Y = Y.reshape(AL.shape)
 
-        dAL = - (np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
+        if self.loss_function == 'cross_entropy':
+            dAL = - (np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
+        elif self.loss_function == 'mse':
+            dAL = 2 * (AL - Y) / m
+        elif self.loss_function == 'mae':
+            dAL = np.where(AL > Y, 1, -1) / m
 
-        current_cache = caches[L-1]
-        grads["dA" + str(L-1)], grads["dW" + str(L)], grads["db" + str(L)] = self.linear_activation_backward(dAL, current_cache, activation= self.output_layer_activation)
+        current_cache = caches[-1]
+        grads["dA" + str(L-1)], grads["dW" + str(L)], grads["db" + str(L)] = self.linear_activation_backward(dAL, current_cache, activation=self.output_layer_activation)
 
         for l in reversed(range(L-1)):
             current_cache = caches[l]
-            dA_prev_temp, dW_temp, db_temp = self.linear_activation_backward(grads["dA" + str(l + 1)], current_cache, activation= self.hidden_layer_activation)
+            dA_prev_temp, dW_temp, db_temp = self.linear_activation_backward(grads["dA" + str(l + 1)], current_cache, activation=self.hidden_layer_activation)
             grads["dA" + str(l)] = dA_prev_temp
             grads["dW" + str(l + 1)] = dW_temp
             grads["db" + str(l + 1)] = db_temp
@@ -150,24 +149,30 @@ class DeepNeuralNetwork:
         L = len(self.parameters) // 2
 
         for l in range(L):
-            self.parameters["W" + str(l+1)] = self.parameters["W" + str(l+1)] - learning_rate * grads["dW" + str(l+1)]
-            self.parameters["b" + str(l+1)] = self.parameters["b" + str(l+1)] - learning_rate * grads["db" + str(l+1)]
+            self.parameters["W" + str(l+1)] -= learning_rate * grads["dW" + str(l+1)]
+            self.parameters["b" + str(l+1)] -= learning_rate * grads["db" + str(l+1)]
 
         return self.parameters
 
-    def train(self, X, Y, learning_rate=0.0075, num_epochs = 100, print_cost=False):
+    def train(self, X, Y, learning_rate=0.0075, num_epochs=100, batch_size = 64, shuffle = True ,epoch_verbose = 10 , print_cost=False):
         self.costs = []
 
         for i in range(num_epochs):
-            AL, caches = self.L_model_forward(X)
-            cost = self.compute_cost(AL, Y, loss_type= self.loss_function)
-            grads = self.L_model_backward(AL, Y, caches)
-            self.parameters = self.update_parameters(grads, learning_rate)
+            minibatches = batch_generator(X , Y , batch_size = batch_size, shuffle = shuffle)
+            minibatch_num = len(minibatches)
+            cost = 0
+            for minibatch in minibatches:
+                (minibatch_X, minibatch_Y) = minibatch
 
-            if print_cost and i % 100 == 0:
+                AL, caches = self.L_model_forward(minibatch_X)
+                cost += self.compute_cost(AL, minibatch_Y, loss_type=self.loss_function)
+                grads = self.L_model_backward(AL, minibatch_Y, caches)
+                self.parameters = self.update_parameters(grads, learning_rate)
+            cost = cost/minibatch_num
+            if print_cost and i % epoch_verbose == 0:
                 print(f"Cost after iteration {i}: {cost}")
-            if i % 100 == 0:
-                self.costs.append(cost)
+            
+            self.costs.append(cost)
     
     def plot_epochs(self):
         plt.plot(np.squeeze(self.costs))
@@ -175,3 +180,14 @@ class DeepNeuralNetwork:
         plt.xlabel('Iterations (per hundreds)')
         plt.title("Epochs vs Cost")
         plt.show()
+
+    def predict(self, X): 
+        A = X
+        L = len(self.parameters) // 2
+
+        for l in range(1, L):
+            A_prev = A
+            A, cache = self.linear_activation_forward(A_prev, self.parameters['W' + str(l)], self.parameters['b' + str(l)], activation=self.hidden_layer_activation)
+        AL, cache = self.linear_activation_forward(A, self.parameters['W' + str(L)], self.parameters['b' + str(L)], activation=self.output_layer_activation)
+
+        return AL

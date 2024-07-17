@@ -24,7 +24,7 @@ def relu_backward(dA, activation_cache):
     return dZ
 
 def leaky_relu(z, alpha=0.01):
-    r = np.where(z > 0, z, alpha * z)
+    r = np.maximum(alpha, z)
     cache = z
     return r, cache
 
@@ -46,3 +46,27 @@ def tanh_backward(dA, activation_cache):
     return dZ
 
  
+def batch_generator(X, Y, batch_size, shuffle=True):
+    m = X.shape[1]
+    mini_batches = []
+
+    if shuffle:
+        permutation = list(np.random.permutation(m))
+        shuffled_X = X[:, permutation]
+        shuffled_Y = Y[:, permutation].reshape((1, m))
+    else:
+        shuffled_X = X
+        shuffled_Y = Y.reshape((1, m))
+
+    num_complete_minibatches = m // batch_size
+    for k in range(num_complete_minibatches):
+        mini_batch_X = shuffled_X[:, k * batch_size : (k + 1) * batch_size]
+        mini_batch_Y = shuffled_Y[:, k * batch_size : (k + 1) * batch_size]
+        mini_batches.append((mini_batch_X, mini_batch_Y))
+
+    if m % batch_size != 0:
+        mini_batch_X = shuffled_X[:, num_complete_minibatches * batch_size :]
+        mini_batch_Y = shuffled_Y[:, num_complete_minibatches * batch_size :]
+        mini_batches.append((mini_batch_X, mini_batch_Y))
+
+    return mini_batches
