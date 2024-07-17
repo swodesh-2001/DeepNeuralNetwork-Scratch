@@ -2,12 +2,15 @@ import numpy as np
 from utils import *
 
 class DeepNeuralNetwork:
-    def __init__(self, layer_dims):
+    def __init__(self, layer_dims , hidden_layer_activation : str, output_layer_activation : str, loss_function : str):
         self.layer_dims = layer_dims
         self.parameters = self.initialize_parameters(layer_dims)
+        self.hidden_layer_activation = hidden_layer_activation
+        self.output_layer_activation = output_layer_activation
+        self.loss_function = loss_function
+        self.costs = []
         
     def initialize_parameters(self, layer_dims):
-        np.random.seed(3)
         parameters = {}
         L = len(layer_dims)
 
@@ -29,10 +32,17 @@ class DeepNeuralNetwork:
         if activation == "sigmoid":
             Z, linear_cache = self.linear_forward(A_prev, W, b)
             A, activation_cache = sigmoid(Z)
-
         elif activation == "relu":
             Z, linear_cache = self.linear_forward(A_prev, W, b)
             A, activation_cache = relu(Z)
+        elif activation == "leaky_relu":
+            Z, linear_cache = self.linear_forward(A_prev, W, b)
+            A, activation_cache = leaky_relu(Z)
+        elif activation == "tanh":
+            Z, linear_cache = self.linear_forward(A_prev, W, b)
+            A, activation_cache = tanh(Z)
+        else:
+            raise ValueError("Invalid activation function. Supported activations: 'sigmoid', 'relu', 'leaky_relu', 'tanh'")
 
         assert (A.shape == (W.shape[0], A_prev.shape[1]))
         cache = (linear_cache, activation_cache)
@@ -46,19 +56,39 @@ class DeepNeuralNetwork:
 
         for l in range(1, L):
             A_prev = A 
-            A, cache = self.linear_activation_forward(A_prev, self.parameters['W' + str(l)], self.parameters['b' + str(l)], activation="sigmoid")
+            A, cache = self.linear_activation_forward(A_prev, self.parameters['W' + str(l)], self.parameters['b' + str(l)], activation= self.hidden_layer_activation)
             caches.append(cache)
 
-        AL, cache = self.linear_activation_forward(A, self.parameters['W' + str(L)], self.parameters['b' + str(L)], activation="sigmoid")
+        AL, cache = self.linear_activation_forward(A, self.parameters['W' + str(L)], self.parameters['b' + str(L)], activation= self.output_layer_activation)
         caches.append(cache)
 
         assert(AL.shape == (1, X.shape[1]))
 
         return AL, caches
 
-    def compute_cost(self, AL, Y):
+    def compute_cost(self, AL, Y, loss_type='cross_entropy'):
+        """
+        Compute the cost based on the specified loss type.
+
+        Parameters:
+        AL -- probability vector corresponding to the label predictions, shape (1, number of examples)
+        Y -- true "label" vector, shape (1, number of examples)
+        loss_type -- the type of loss function to use ('cross_entropy', 'mse', 'mae')
+
+        Returns:
+        cost -- the cost value
+        """
         m = Y.shape[1]
-        cost = -(1/m) * np.sum(Y * np.log(AL) + (1-Y) * np.log(1-AL))
+        
+        if loss_type == 'cross_entropy':
+            cost = -(1/m) * np.sum(Y * np.log(AL) + (1-Y) * np.log(1-AL))
+        elif loss_type == 'mse':
+            cost = (1/m) * np.sum((AL - Y) ** 2)
+        elif loss_type == 'mae':
+            cost = (1/m) * np.sum(np.abs(AL - Y))
+        else:
+            raise ValueError("Invalid loss type. Supported types: 'cross_entropy', 'mse', 'mae'")
+        
         cost = np.squeeze(cost)
         assert(cost.shape == ())
 
@@ -83,11 +113,16 @@ class DeepNeuralNetwork:
 
         if activation == "relu":
             dZ = relu_backward(dA, activation_cache)
-            dA_prev, dW, db = self.linear_backward(dZ, linear_cache)
-
         elif activation == "sigmoid":
             dZ = sigmoid_backward(dA, activation_cache)
-            dA_prev, dW, db = self.linear_backward(dZ, linear_cache)
+        elif activation == "leaky_relu":
+            dZ = leaky_relu_backward(dA, activation_cache)
+        elif activation == "tanh":
+            dZ = tanh_backward(dA, activation_cache)
+        else:
+            raise ValueError("Invalid activation function. Supported activations: 'sigmoid', 'relu', 'leaky_relu', 'tanh'")
+
+        dA_prev, dW, db = self.linear_backward(dZ, linear_cache)
 
         return dA_prev, dW, db
 
@@ -100,11 +135,11 @@ class DeepNeuralNetwork:
         dAL = - (np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
 
         current_cache = caches[L-1]
-        grads["dA" + str(L-1)], grads["dW" + str(L)], grads["db" + str(L)] = self.linear_activation_backward(dAL, current_cache, activation="sigmoid")
+        grads["dA" + str(L-1)], grads["dW" + str(L)], grads["db" + str(L)] = self.linear_activation_backward(dAL, current_cache, activation= self.output_layer_activation)
 
         for l in reversed(range(L-1)):
             current_cache = caches[l]
-            dA_prev_temp, dW_temp, db_temp = self.linear_activation_backward(grads["dA" + str(l + 1)], current_cache, activation="relu")
+            dA_prev_temp, dW_temp, db_temp = self.linear_activation_backward(grads["dA" + str(l + 1)], current_cache, activation= self.hidden_layer_activation)
             grads["dA" + str(l)] = dA_prev_temp
             grads["dW" + str(l + 1)] = dW_temp
             grads["db" + str(l + 1)] = db_temp
@@ -120,18 +155,23 @@ class DeepNeuralNetwork:
 
         return self.parameters
 
-    def train(self, X, Y, learning_rate=0.0075, num_iterations=3000, print_cost=False):
-        costs = []
+    def train(self, X, Y, learning_rate=0.0075, num_epochs = 100, print_cost=False):
+        self.costs = []
 
-        for i in range(num_iterations):
+        for i in range(num_epochs):
             AL, caches = self.L_model_forward(X)
-            cost = self.compute_cost(AL, Y)
+            cost = self.compute_cost(AL, Y, loss_type= self.loss_function)
             grads = self.L_model_backward(AL, Y, caches)
             self.parameters = self.update_parameters(grads, learning_rate)
 
             if print_cost and i % 100 == 0:
                 print(f"Cost after iteration {i}: {cost}")
             if i % 100 == 0:
-                costs.append(cost)
-
-        return self.parameters, costs
+                self.costs.append(cost)
+    
+    def plot_epochs(self):
+        plt.plot(np.squeeze(self.costs))
+        plt.ylabel('Cost')
+        plt.xlabel('Iterations (per hundreds)')
+        plt.title("Epochs vs Cost")
+        plt.show()
