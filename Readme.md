@@ -8,15 +8,15 @@ A neural network is a computational model inspired by the way biological neural 
 
 The forward pass involves calculating the output of the neural network by passing the input through each layer sequentially. The output of one layer becomes the input to the next layer.
 
-For a layer $ l $, the linear part of the forward pass is given by:
+For a layer $l$, the linear part of the forward pass is given by:
 
 $$
 Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}
 $$
 
-where $ W^{[l]} $ and $ b^{[l]} $ are the weights and biases of layer $ l $, and $ A^{[l-1]} $ is the activation from the previous layer.
+where $W^{[l]}$ and $b^{[l]}$ are the weights and biases of layer $l$, and $A^{[l-1]}$ is the activation from the previous layer.
 
-The activation part of the forward pass involves applying an activation function $ g $:
+The activation part of the forward pass involves applying an activation function $g$:
 
 $$
 A^{[l]} = g(Z^{[l]})
@@ -88,11 +88,11 @@ $$
 The sigmoid function outputs a value between 0 and 1, making it useful for binary classification tasks. However, it can suffer from the vanishing gradient problem, where gradients become very small during backpropagation, slowing down the learning process.
  
 
-Let's denote the sigmoid function as $ \sigma(z) = S(z) $. The derivative of $ S(z) $ with respect to $ z $ is $ S'(z) $.
+Let's denote the sigmoid function as $\sigma(z) = S(z)$. The derivative of $S(z)$ with respect to $z$ is $S'(z)$.
 
-Now, let's differentiate $ S(z) $ with respect to $ z $. Using the quotient rule, where $\frac{d}{dz} \left( \frac{u}{v} \right) = \frac{u'v - uv'}{v^2} $, let $ u = 1 $ and $ v = 1 + e^{-z} $.
+Now, let's differentiate $S(z)$ with respect to $z$. Using the quotient rule, where $\frac{d}{dz} \left( \frac{u}{v} \right) = \frac{u'v - uv'}{v^2}$, let $u = 1$ and $v = 1 + e^{-z}$.
 
-We need the derivatives of $ u $ and $ v $:
+We need the derivatives of $u$ and $v$:
 
 $$ u' = 0 $$
 $$ v' = \frac{d}{dz}(1 + e^{-z}) = -e^{-z} $$
@@ -103,9 +103,9 @@ $$ S'(z) = \frac{0 \cdot (1 + e^{-z}) - 1 \cdot (-e^{-z})}{(1 + e^{-z})^2} $$
 $$ S'(z) = \frac{e^{-z}}{(1 + e^{-z})^2} $$
 
 
-We have $ S(z) = \frac{1}{1 + e^{-z}} $, and therefore $ 1 - S(z) = \frac{e^{-z}}{1 + e^{-z}} $.
+We have $S(z) = \frac{1}{1 + e^{-z}}$, and therefore $1 - S(z) = \frac{e^{-z}}{1 + e^{-z}}$.
 
-Using this, we can rewrite $ S'(z) $:
+Using this, we can rewrite $S'(z)$:
 
 $$ S'(z) = S(z) \cdot (1 - S(z)) $$
 
@@ -162,7 +162,7 @@ $$
 \text{Leaky ReLU}(z) = \max(\alpha z, z)
 $$
 
-where $ \alpha $ is a small constant.
+where $\alpha$ is a small constant.
 
 **Code Implementation:**
 
@@ -193,15 +193,15 @@ To find the derivative of the hyperbolic tangent function, $\tanh(z)$, we start 
 
 $$ \tanh(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}} $$
 
-Let's denote the hyperbolic tangent function as $ \tanh(z) = T(z) $. The derivative of $ T(z) $ with respect to $ z $ is $ T'(z) $.
+Let's denote the hyperbolic tangent function as $\tanh(z) = T(z)$. The derivative of $T(z)$ with respect to $z$ is $T'(z)$.
 
-First, rewrite $ T(z) $:
+First, rewrite $T(z)$:
 
 $$ T(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}} $$
 
-Now, differentiate $ T(z) $ with respect to $ z $. Using the quotient rule, where $\frac{d}{dz} \left( \frac{u}{v} \right) = \frac{u'v - uv'}{v^2} $, let $ u = e^z - e^{-z} $ and $ v = e^z + e^{-z} $.
+Now, differentiate $T(z)$ with respect to $z$. Using the quotient rule, where $\frac{d}{dz} \left( \frac{u}{v} \right) = \frac{u'v - uv'}{v^2}$, let $u = e^z - e^{-z}$ and $v = e^z + e^{-z}$.
 
-We need the derivatives of $ u $ and $ v $:
+We need the derivatives of $u$ and $v$:
 
 $$ u' = e^z + e^{-z} $$
 $$ v' = e^z - e^{-z} $$
@@ -211,7 +211,7 @@ Applying the quotient rule:
 $$ T'(z) = \frac{(e^z + e^{-z})(e^z + e^{-z}) - (e^z - e^{-z})(e^z - e^{-z})}{(e^z + e^{-z})^2} $$
 $$ T'(z) = \frac{(e^z + e^{-z})^2 - (e^z - e^{-z})^2}{(e^z + e^{-z})^2} $$
 
-Expand $ (e^z + e^{-z})^2 $ and $ (e^z - e^{-z})^2 $:
+Expand $(e^z + e^{-z})^2$ and $(e^z - e^{-z})^2$:
 
 $$ (e^z + e^{-z})^2 = e^{2z} + 2 + e^{-2z} $$
 $$ (e^z - e^{-z})^2 = e^{2z} - 2 + e^{-2z} $$
@@ -225,11 +225,11 @@ Therefore, the derivative of the hyperbolic tangent function is:
 
 $$ \boxed{T'(z) = \frac{4}{(e^z + e^{-z})^2}} $$
 
-This can also be expressed in terms of $ \tanh(z) $:
+This can also be expressed in terms of $\tanh(z)$:
 
 $$ \boxed{T'(z) = 1 - \tanh^2(z)} $$
 
-Both forms represent the derivative of the hyperbolic tangent function with respect to $ z $.
+Both forms represent the derivative of the hyperbolic tangent function with respect to $z$.
 
 
 **Code Implementation:**
@@ -271,10 +271,10 @@ The binary cross entropy loss function for a single prediction is :
 $$ L(AL, Y) = - (Y \log(AL) + (1 - Y) \log(1 - AL)) $$
 
 Where:
-- $ AL $ is the predicted output.
-- $ Y $ is the true label (either 0 or 1).
+- $AL$ is the predicted output.
+- $Y$ is the true label (either 0 or 1).
 
-Now, to find $ \frac{\partial L}{\partial AL} $:
+Now, to find $\frac{\partial L}{\partial AL}$:
 
 We Comput the Derivate and it is given as :
 
@@ -290,13 +290,13 @@ dAL = - (np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
  cost = -(1/m) * np.sum(Y * np.log(AL) + (1-Y) * np.log(1-AL))
 ```
 
-where $ dAL $ represents $ \frac{\partial L}{\partial AL} $ in the context of our code.
+where $dAL$ represents $\frac{\partial L}{\partial AL}$ in the context of our code.
 
 ### Mean Squared Error (MSE)
 
 The Mean Squared Error (MSE) is used for regression tasks. It measures the average squared difference between the actual and predicted values.
 
-The MSE for $ m $ data points is defined as:
+The MSE for $m$ data points is defined as:
 
 $$
 \text{MSE} = \frac{1}{m} \sum_{i=1}^{m} (y_i - \hat{y}_i)^2
@@ -308,7 +308,7 @@ $$
 L(AL, Y) = \frac{1}{m} \sum_{i=1}^{m} (Y_i - AL_i)^2
 $$
 
-To find the gradient $ \frac{\partial L}{\partial AL_i} $:
+To find the gradient $\frac{\partial L}{\partial AL_i}$:
 
 $$
 \frac{\partial L}{\partial AL_i} = \frac{\partial}{\partial AL_i} \left( \frac{1}{m} \sum_{i=1}^{m} (Y_i - AL_i)^2 \right)
@@ -340,7 +340,7 @@ cost = (1/m) * np.sum((AL - Y) ** 2)
 
 The Mean Absolute Error (MAE) measures the average absolute difference between the actual and predicted values.
 
-The MAE for $ m $ data points is defined as:
+The MAE for $m$ data points is defined as:
 
 $$
 \text{MAE} = \frac{1}{m} \sum_{i=1}^{m} |y_i - \hat{y}_i|
@@ -352,15 +352,15 @@ $$
 L(AL, Y) = \frac{1}{m} \sum_{i=1}^{m} |Y_i - AL_i|
 $$
 
-To find the gradient $ \frac{\partial L}{\partial AL_i} $:
+To find the gradient $\frac{\partial L}{\partial AL_i}$:
 
-The absolute function $ |Y_i - AL_i| $ has different derivatives depending on the sign of $ Y_i - AL_i $:
+The absolute function $|Y_i - AL_i|$ has different derivatives depending on the sign of $Y_i - AL_i$:
 
 $$
 \frac{\partial L}{\partial AL_i} = \frac{\partial}{\partial AL_i} \left( \frac{1}{m} \sum_{i=1}^{m} |Y_i - AL_i| \right)
 $$
 
-So, the derivative for each $ i $:
+So, the derivative for each $i$:
 
 $$
 \frac{\partial L}{\partial AL_i} = \begin{cases}
@@ -380,8 +380,8 @@ cost = (1/m) * np.sum(np.abs(AL - Y))
 ```
 
 In these implementations:
-- `dAL` represents the gradient of the loss with respect to `AL` for $ m $ data points.
-- `cost` represents the calculated cost using the respective loss function for $ m $ data points.
+- `dAL` represents the gradient of the loss with respect to `AL` for $m$ data points.
+- `cost` represents the calculated cost using the respective loss function for $m$ data points.
 
 These derivations and implementations should help in understanding and applying MSE and MAE in your models.
 
@@ -391,7 +391,7 @@ Backpropagation is the process of calculating the gradients of the loss function
 
 ### Gradient Calculation
 
-For the $ l $-th layer:
+For the $l$-th layer:
 
 $$
 Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}
@@ -485,13 +485,13 @@ The parameters of the neural network are updated using the gradients calculated 
 
 Gradient descent is an optimization algorithm used to minimize the loss function. The basic idea is to adjust the parameters in the direction of the negative gradient of the loss function with respect to the parameters.
 
-For a parameter $ \theta $:
+For a parameter $\theta$:
 
 $$
 \theta = \theta - \alpha \frac{\partial L}{\partial \theta}
 $$
 
-where $ \alpha $ is the learning rate.
+where $\alpha$ is the learning rate.
 
 ### Parameter Update Code Implementation
 
