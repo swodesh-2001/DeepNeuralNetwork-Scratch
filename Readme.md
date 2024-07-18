@@ -1,8 +1,13 @@
 # Deep Neural Network From Scratch
 
+[YOU CAN READ THE THEORY NOTES FROM HERE](https://drive.google.com/file/d/1Sin3vv_8qJhF11KOV8ADclBCzbY8zHvB/view?usp=drive_link)
+
+
 A neural network is a computational model inspired by the way biological neural networks in the human brain process information. It consists of layers of interconnected neurons that work together to recognize patterns and solve complex problems. Neural networks are used in a wide range of applications including image and speech recognition, natural language processing, and game playing.
 
 ---
+
+![Neural Network](./images/image.png)
 
 ## Theory on Forward Pass
 
@@ -85,6 +90,9 @@ $$
 \sigma(z) = \frac{1}{1 + e^{-z}}
 $$
 
+![Sigmoid Function](./images/image-1.png)
+
+
 The sigmoid function outputs a value between 0 and 1, making it useful for binary classification tasks. However, it can suffer from the vanishing gradient problem, where gradients become very small during backpropagation, slowing down the learning process.
  
 
@@ -139,6 +147,9 @@ $$
 
 ReLU is widely used due to its simplicity and effectiveness. It helps mitigate the vanishing gradient problem by allowing gradients to flow when the input is positive.
 
+![Relu](./images/image-2.png)
+
+
 **Code Implementation:**
 
 ```python
@@ -164,6 +175,8 @@ $$
 
 where $\alpha$ is a small constant.
 
+![Leaky Relu](./images/image-3.png)
+
 **Code Implementation:**
 
 ```python
@@ -188,6 +201,8 @@ $$
 $$
 
 The tanh function outputs values between -1 and 1, making it useful for zero-centered data.
+
+![tanh](./images/image-4.png)
 
 To find the derivative of the hyperbolic tangent function, $\tanh(z)$, we start with its definition:
 
@@ -383,30 +398,58 @@ In these implementations:
 - `dAL` represents the gradient of the loss with respect to `AL` for $m$ data points.
 - `cost` represents the calculated cost using the respective loss function for $m$ data points.
 
-These derivations and implementations should help in understanding and applying MSE and MAE in your models.
-
 ## Theory on Backpropagation
 
 Backpropagation is the process of calculating the gradients of the loss function with respect to each parameter in the neural network. These gradients are then used to update the parameters in order to minimize the loss.
 
 ### Gradient Calculation
 
-For the $l$-th layer:
+Let's consider a neural network with $L$ layers. For the $l$-th layer, we have the following equations:
 
-$$
-Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}
-$$
-$$
-A^{[l]} = g(Z^{[l]})
-$$
+$$ Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]} $$
 
-Using the chain rule:
+After this linear transformation, an activation function $g(x)$ is applied to get the activation output $A^{[l]}$:
 
-$$
-\frac{\partial L}{\partial W^{[l]}} = \frac{\partial L}{\partial A^{[l]}} \cdot \frac{\partial A^{[l]}}{\partial Z^{[l]}} \cdot \frac{\partial Z^{[l]}}{\partial W^{[l]}}
-$$
+$$ A^{[l]} = g(Z^{[l]}) $$
 
-This can be broken down as:
+For the final layer, $A^{[L]}$ represents the predicted output of the network. To update the weights using gradient descent, we need to compute the gradients of the loss function with respect to the weights. We use the chain rule for this purpose. 
+
+$$ \frac{\partial L_{\text{fn}}}{\partial W} = \frac{\partial L_{\text{fn}}}{\partial A} \cdot \frac{\partial A}{\partial Z} \cdot \frac{\partial Z}{\partial W} $$
+
+For coding, we use the following Notation,
+
+$$ dZ^{[l]} = \frac{\partial L_{\text{fn}}}{\partial Z^{[l]}} = \frac{\partial L_{\text{fn}}}{\partial A^{[l]}} \cdot \frac{\partial A^{[l]}}{\partial Z^{[l]}} $$
+
+Given that:
+
+$$ A^{[l]} = g(Z^{[l]}) $$
+
+Using the chain rule, we can write:
+
+$$ dZ^{[l]} = dA^{[l]} \cdot g'(Z^{[l]}) $$
+
+where $g'$ is the derivative of the activation function.
+
+From the linear transformation:
+
+$$ Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]} $$
+
+We can derive the partial derivatives:
+
+$$ \frac{\partial Z^{[l]}}{\partial W^{[l]}} = A^{[l-1]} $$
+$$ \frac{\partial Z^{[l]}}{\partial b^{[l]}} = 1 $$
+
+Now once we know $dZ^{[l]}$, we can compute the following gradients:
+
+$$ dW^{[l]} = \frac{\partial L_{\text{fn}}}{\partial W^{[l]}} = dZ^{[l]} \cdot (A^{[l-1]})^T $$
+$$ db^{[l]} = \frac{\partial L_{\text{fn}}}{\partial b^{[l]}} = dZ^{[l]} $$
+$$ dA^{[l-1]} = \frac{\partial L_{\text{fn}}}{\partial A^{[l-1]}} = (W^{[l]})^T \cdot dZ^{[l]} $$
+
+### Vectorized Approach for $m$ Data Points
+
+When dealing with multiple data points (a mini-batch of size $m$), we can vectorize the computations.  
+
+Gradient Calculations are done as :
 
 $$
 dZ^{[l]} = \frac{\partial L}{\partial A^{[l]}} \cdot g'(Z^{[l]})
@@ -479,11 +522,13 @@ def L_model_backward(AL, Y, caches, hidden_layer_activation, output_layer_activa
 
 ## Parameter Update
 
-The parameters of the neural network are updated using the gradients calculated during backpropagation. This is typically done using gradient descent or one of its variants.
+The parameters of the neural network are updated using the gradients calculated during backpropagation. In this code we have used gradient descent optimizer for the optimization.
 
 ### Gradient Descent Algorithm
 
 Gradient descent is an optimization algorithm used to minimize the loss function. The basic idea is to adjust the parameters in the direction of the negative gradient of the loss function with respect to the parameters.
+
+![Gradient_Descent](./images/gradient_descent.gif)
 
 For a parameter $\theta$:
 
@@ -509,7 +554,7 @@ def update_parameters(parameters, grads, learning_rate):
 ---
  ## Training the Model 
 
-Training a neural network involves optimizing the parameters (weights and biases) to minimize the cost function. This is typically done using an algorithm called gradient descent, which updates the parameters in the opposite direction of the gradient of the cost function with respect to each parameter.
+For training , I have used a batch generator that splits the data into many small batches and trains each batch for `n` epochs. The costs are calculated for each epochs and displayed later throug `plot_epoch` function.
 
 ### Code Implementation 
 
@@ -534,9 +579,7 @@ def train(self, X, Y, learning_rate=0.0075, num_epochs=100, batch_size=64, shuff
 
         self.costs.append(cost)
 ```
-
-### Explanation
-
+ 
 - **Epochs**: The training process is divided into several epochs. An epoch refers to one complete pass through the entire training dataset.
 - **Mini-batches**: Instead of updating the parameters after every single training example, we divide the training dataset into smaller subsets called mini-batches. This reduces the variance of the parameter updates and can lead to more stable convergence.
 - **Cost Calculation**: For each mini-batch, we calculate the cost and accumulate it. At the end of each epoch, the average cost over all mini-batches is recorded.
@@ -558,15 +601,15 @@ def predict(self, X):
 
     return AL
 ```
-
-### Explanation
-
+ 
 - **Forward Propagation**: The `predict` function performs a forward pass through the entire network using the learned parameters. It uses the `linear_activation_forward` function to compute the activations at each layer.
 - **Output**: The final output, `AL`, is the prediction of the network for the input `X`.
 
 ## Batch Generator 
 
-In neural network training, especially when dealing with large datasets, it's often impractical to use the entire dataset to compute the gradients for parameter updates. Instead, we use mini-batches to approximate the gradients. This approach balances the stability of full-batch gradient descent with the computational efficiency of stochastic gradient descent.
+We have followed vectorized approach of training , i.e whole data goes into the forward pass and update the weights. But due to memory limitation, the whole data may not be able to fit in the `GPU` , thus we split the data into mini-batches and then perform forward pass and then update the weights.
+
+![vectorized_data](./images/Vectorized.png)
 
 ### Code Implementation 
 
@@ -596,15 +639,5 @@ def batch_generator(X, Y, batch_size, shuffle=True):
 
     return mini_batches
 ```
-
-### Explanation
-
-- **Shuffling**: Shuffling the dataset before creating mini-batches helps in reducing the variance of parameter updates and leads to better generalization.
-- **Mini-batch Creation**: The function splits the dataset into mini-batches of the specified size. If the total number of examples is not perfectly divisible by the batch size, the last mini-batch will contain the remaining examples.
-
-### Importance
-
-Using mini-batches in training:
-- **Reduces Memory Usage**: Training on mini-batches requires less memory compared to using the entire dataset.
-- **Faster Convergence**: It provides a good balance between the noisy updates of stochastic gradient descent and the more stable but computationally expensive updates of full-batch gradient descent.
-- **Better Generalization**: Shuffling and using mini-batches can lead to better generalization performance of the neural network on unseen data.
+ 
+  
