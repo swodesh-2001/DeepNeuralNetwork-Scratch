@@ -1,7 +1,6 @@
 # Deep Neural Network From Scratch
 
-[YOU CAN READ THE THEORY NOTES FROM HERE](https://drive.google.com/file/d/1Sin3vv_8qJhF11KOV8ADclBCzbY8zHvB/view?usp=drive_link)
-
+<a href="https://drive.google.com/file/d/1Sin3vv_8qJhF11KOV8ADclBCzbY8zHvB/view?usp=drive_link" target="_blank">YOU CAN READ THE THEORY NOTES FROM HERE</a>
 
 A neural network is a computational model inspired by the way biological neural networks in the human brain process information. It consists of layers of interconnected neurons that work together to recognize patterns and solve complex problems. Neural networks are used in a wide range of applications including image and speech recognition, natural language processing, and game playing.
 
