@@ -4,6 +4,77 @@ A neural network is a computational model inspired by the way biological neural 
 
 ---
 
+## Theory on Forward Pass
+
+The forward pass involves calculating the output of the neural network by passing the input through each layer sequentially. The output of one layer becomes the input to the next layer.
+
+For a layer $ l $, the linear part of the forward pass is given by:
+
+$$
+Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}
+$$
+
+where $ W^{[l]} $ and $ b^{[l]} $ are the weights and biases of layer $ l $, and $ A^{[l-1]} $ is the activation from the previous layer.
+
+The activation part of the forward pass involves applying an activation function $ g $:
+
+$$
+A^{[l]} = g(Z^{[l]})
+$$
+
+> During a forward pass in a neural network, each layer computes its output based on the input it receives from the previous layer or directly from the input data. To facilitate the subsequent calculation of gradients during backpropagation, it is crucial to store certain intermediate values, often referred to as the "cache". These cached values typically include the inputs and outputs of each layer, which are necessary for computing gradients efficiently.
+
+So the `linear_cache` and `activation_cache` are for storing each layers output and use them during `backward propagation`.
+
+### Forward Pass Code Implementation
+
+```python
+def linear_forward(A, W, b):
+    Z = np.dot(W, A) + b
+    cache = (A, W, b)
+    return Z, cache
+
+def linear_activation_forward(A_prev, W, b, activation):
+    if activation == "sigmoid":
+        Z, linear_cache = linear_forward(A_prev, W, b)
+        A, activation_cache = sigmoid(Z)
+    elif activation == "relu":
+        Z, linear_cache = linear_forward(A_prev, W, b)
+        A, activation_cache = relu(Z)
+    elif activation == "leaky_relu":
+        Z, linear_cache = linear_forward(A_prev, W, b)
+        A, activation_cache = leaky_relu(Z)
+    elif activation == "tanh":
+        Z, linear_cache = linear_forward(A_prev, W, b)
+        A, activation_cache = tanh(Z)
+    elif activation == "linear":
+        Z, linear_cache = linear_forward(A_prev, W, b)
+        A, activation_cache = Z, Z
+    else:
+        raise ValueError("Invalid activation function. Supported activations: 'sigmoid', 'relu', 'leaky_relu', 'tanh'")
+
+    cache = (linear_cache, activation_cache)
+    return A, cache
+
+def L_model_forward(X, parameters, hidden_layer_activation, output_layer_activation):
+    caches = []
+    A = X
+    L = len(parameters) // 2
+
+    for l in range(1, L):
+        A_prev = A
+        A, cache = linear_activation_forward(A_prev, parameters['W' + str(l)], parameters['b' + str(l)], activation=hidden_layer_activation)
+        caches.append(cache)
+
+    AL, cache = linear_activation_forward(A, parameters['W' + str(L)], parameters['b' + str(L)], activation=output_layer_activation)
+    caches.append(cache)
+
+    return AL, caches
+```
+
+---
+
+
 ## Activation Functions
 
 ### Sigmoid
@@ -178,75 +249,7 @@ def tanh_backward(dA, activation_cache):
 
 ---
 
-## Theory on Forward Pass
 
-The forward pass involves calculating the output of the neural network by passing the input through each layer sequentially. The output of one layer becomes the input to the next layer.
-
-For a layer $ l $, the linear part of the forward pass is given by:
-
-$$
-Z^{[l]} = W^{[l]} A^{[l-1]} + b^{[l]}
-$$
-
-where $ W^{[l]} $ and $ b^{[l]} $ are the weights and biases of layer $ l $, and $ A^{[l-1]} $ is the activation from the previous layer.
-
-The activation part of the forward pass involves applying an activation function $ g $:
-
-$$
-A^{[l]} = g(Z^{[l]})
-$$
-
-> During a forward pass in a neural network, each layer computes its output based on the input it receives from the previous layer or directly from the input data. To facilitate the subsequent calculation of gradients during backpropagation, it is crucial to store certain intermediate values, often referred to as the "cache". These cached values typically include the inputs and outputs of each layer, which are necessary for computing gradients efficiently.
-
-So the `linear_cache` and `activation_cache` are for storing each layers output and use them during `backward propagation`.
-
-### Forward Pass Code Implementation
-
-```python
-def linear_forward(A, W, b):
-    Z = np.dot(W, A) + b
-    cache = (A, W, b)
-    return Z, cache
-
-def linear_activation_forward(A_prev, W, b, activation):
-    if activation == "sigmoid":
-        Z, linear_cache = linear_forward(A_prev, W, b)
-        A, activation_cache = sigmoid(Z)
-    elif activation == "relu":
-        Z, linear_cache = linear_forward(A_prev, W, b)
-        A, activation_cache = relu(Z)
-    elif activation == "leaky_relu":
-        Z, linear_cache = linear_forward(A_prev, W, b)
-        A, activation_cache = leaky_relu(Z)
-    elif activation == "tanh":
-        Z, linear_cache = linear_forward(A_prev, W, b)
-        A, activation_cache = tanh(Z)
-    elif activation == "linear":
-        Z, linear_cache = linear_forward(A_prev, W, b)
-        A, activation_cache = Z, Z
-    else:
-        raise ValueError("Invalid activation function. Supported activations: 'sigmoid', 'relu', 'leaky_relu', 'tanh'")
-
-    cache = (linear_cache, activation_cache)
-    return A, cache
-
-def L_model_forward(X, parameters, hidden_layer_activation, output_layer_activation):
-    caches = []
-    A = X
-    L = len(parameters) // 2
-
-    for l in range(1, L):
-        A_prev = A
-        A, cache = linear_activation_forward(A_prev, parameters['W' + str(l)], parameters['b' + str(l)], activation=hidden_layer_activation)
-        caches.append(cache)
-
-    AL, cache = linear_activation_forward(A, parameters['W' + str(L)], parameters['b' + str(L)], activation=output_layer_activation)
-    caches.append(cache)
-
-    return AL, caches
-```
-
----
 
 ## Cost Functions
 
@@ -275,7 +278,7 @@ Now, to find $ \frac{\partial L}{\partial AL} $:
 
 We Comput the Derivate and it is given as :
 
-   \[ \frac{\partial L}{\partial AL} = - \left( \frac{Y}{AL} - \frac{1 - Y}{1 - AL} \right) $$
+   $$ \frac{\partial L}{\partial AL} = - \left( \frac{Y}{AL} - \frac{1 - Y}{1 - AL} \right) $$
  
 ### Code implementation
 
@@ -289,25 +292,98 @@ dAL = - (np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
 
 where $ dAL $ represents $ \frac{\partial L}{\partial AL} $ in the context of our code.
 
-
-
 ### Mean Squared Error (MSE)
 
 The Mean Squared Error (MSE) is used for regression tasks. It measures the average squared difference between the actual and predicted values.
+
+The MSE for $ m $ data points is defined as:
 
 $$
 \text{MSE} = \frac{1}{m} \sum_{i=1}^{m} (y_i - \hat{y}_i)^2
 $$
 
+For the loss function:
+
+$$
+L(AL, Y) = \frac{1}{m} \sum_{i=1}^{m} (Y_i - AL_i)^2
+$$
+
+To find the gradient $ \frac{\partial L}{\partial AL_i} $:
+
+$$
+\frac{\partial L}{\partial AL_i} = \frac{\partial}{\partial AL_i} \left( \frac{1}{m} \sum_{i=1}^{m} (Y_i - AL_i)^2 \right)
+$$
+
+Applying the derivative:
+
+$$
+\frac{\partial L}{\partial AL_i} = \frac{2}{m} \sum_{i=1}^{m} (AL_i - Y_i)
+$$
+
+So,
+
+$$
+\frac{\partial L}{\partial AL} = \frac{2}{m} (AL - Y)
+$$
+
+### Code Implementation for MSE
+
+```python
+# Gradient of the loss with respect to AL for MSE
+dAL = (2/m) * (AL - Y)
+
+# Mean Squared Error cost function
+cost = (1/m) * np.sum((AL - Y) ** 2)
+```
+
 ### Mean Absolute Error (MAE)
 
-The Mean Absolute Error (MAE) is another regression metric that measures the average absolute difference between the actual and predicted values.
+The Mean Absolute Error (MAE) measures the average absolute difference between the actual and predicted values.
+
+The MAE for $ m $ data points is defined as:
 
 $$
 \text{MAE} = \frac{1}{m} \sum_{i=1}^{m} |y_i - \hat{y}_i|
 $$
 
----
+For the loss function:
+
+$$
+L(AL, Y) = \frac{1}{m} \sum_{i=1}^{m} |Y_i - AL_i|
+$$
+
+To find the gradient $ \frac{\partial L}{\partial AL_i} $:
+
+The absolute function $ |Y_i - AL_i| $ has different derivatives depending on the sign of $ Y_i - AL_i $:
+
+$$
+\frac{\partial L}{\partial AL_i} = \frac{\partial}{\partial AL_i} \left( \frac{1}{m} \sum_{i=1}^{m} |Y_i - AL_i| \right)
+$$
+
+So, the derivative for each $ i $:
+
+$$
+\frac{\partial L}{\partial AL_i} = \begin{cases}
+\frac{1}{m} (-1) & \text{if } AL_i < Y_i \\
+\frac{1}{m} (1) & \text{if } AL_i > Y_i
+\end{cases}
+$$
+
+### Code Implementation for MAE
+
+```python
+# Gradient of the loss with respect to AL for MAE
+dAL = (1/m) * np.where(AL > Y, 1, -1)
+
+# Mean Absolute Error cost function
+cost = (1/m) * np.sum(np.abs(AL - Y))
+```
+
+In these implementations:
+- `dAL` represents the gradient of the loss with respect to `AL` for $ m $ data points.
+- `cost` represents the calculated cost using the respective loss function for $ m $ data points.
+
+These derivations and implementations should help in understanding and applying MSE and MAE in your models.
 
 ## Theory on Backpropagation
 
