@@ -53,10 +53,10 @@ def batch_generator(X, Y, batch_size, shuffle=True):
     if shuffle:
         permutation = list(np.random.permutation(m))
         shuffled_X = X[:, permutation]
-        shuffled_Y = Y[:, permutation].reshape((1, m))
+        shuffled_Y = Y[:, permutation]
     else:
         shuffled_X = X
-        shuffled_Y = Y.reshape((1, m))
+        shuffled_Y = Y
 
     num_complete_minibatches = m // batch_size
     for k in range(num_complete_minibatches):
@@ -70,3 +70,28 @@ def batch_generator(X, Y, batch_size, shuffle=True):
         mini_batches.append((mini_batch_X, mini_batch_Y))
 
     return mini_batches
+
+def plot_actual_vs_predicted(nn, X_norm, y, learning_rate=0.01,batch_size = 4):
+    epochs_list = [10, 50, 100, 500, 1000,2000]
+    
+    plt.figure(figsize=(15, 8))
+    
+    for i, epochs in enumerate(epochs_list):
+        # Train the model
+        nn.train(X_norm, y, num_epochs= epochs, learning_rate=learning_rate,batch_size= batch_size,shuffle= False, print_cost = False)
+        
+        # Generate predictions
+        y_pred = nn.predict(X = X_norm ) 
+        
+        # Plot predictions
+        plt.subplot(2, 3, i + 1)
+        plt.plot(y.squeeze(), label='Actual')
+        plt.plot(y_pred.squeeze(), label='Predicted', linestyle='dashed', color='r')
+        plt.title(f'Actual vs Predicted for {epochs} epochs')
+        plt.xlabel('X')
+        plt.ylabel('Attenuated Sine wave')
+        plt.legend()
+        plt.grid(True)
+    
+    plt.tight_layout()
+    plt.show()

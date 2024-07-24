@@ -1,5 +1,35 @@
 # Deep Neural Network From Scratch
 
+- [Theory on Forward Pass](#theory-on-forward-pass)
+  - [Forward Pass Code Implementation](#forward-pass-code-implementation)
+- [Activation Functions](#activation-functions)
+  - [Sigmoid](#sigmoid)
+  - [ReLU](#relu)
+  - [Leaky ReLU](#leaky-relu)
+  - [Tanh](#tanh)
+- [Cost Functions](#cost-functions)
+  - [Cross-Entropy Loss](#cross-entropy-loss)
+  - [Code implementation](#code-implementation)
+  - [Mean Squared Error (MSE)](#mean-squared-error-mse)
+  - [Code Implementation for MSE](#code-implementation-for-mse)
+  - [Mean Absolute Error (MAE)](#mean-absolute-error-mae)
+  - [Code Implementation for MAE](#code-implementation-for-mae)
+- [Theory on Backpropagation](#theory-on-backpropagation)
+  - [Gradient Calculation](#gradient-calculation)
+  - [Vectorized Approach for $m$ Data Points](#vectorized-approach-for-m-data-points)
+  - [Backpropagation Code Implementation](#backpropagation-code-implementation)
+- [Parameter Update](#parameter-update)
+  - [Gradient Descent Algorithm](#gradient-descent-algorithm)
+  - [Parameter Update Code Implementation](#parameter-update-code-implementation)
+  - [Code Implementation](#code-implementation)
+- [Prediction](#prediction)
+  - [Code Implementation](#code-implementation)
+- [Batch Generator](#batch-generator)
+  - [Code Implementation](#code-implementation)
+- [Test](#test)
+
+
+
 <a href="https://drive.google.com/file/d/1Sin3vv_8qJhF11KOV8ADclBCzbY8zHvB/view?usp=drive_link" target="_blank">YOU CAN READ THE THEORY NOTES FROM HERE</a>
 
 A neural network is a computational model inspired by the way biological neural networks in the human brain process information. It consists of layers of interconnected neurons that work together to recognize patterns and solve complex problems. Neural networks are used in a wide range of applications including image and speech recognition, natural language processing, and game playing.
@@ -640,3 +670,12 @@ def batch_generator(X, Y, batch_size, shuffle=True):
 ```
  
   
+## Test 
+
+Lets fit the neural network on some regression task.
+
+```bash
+python train.py --batch_size 8 --learning_rate 0.1 --num_epochs 3000
+```
+
+![result](./images/Result.png)
