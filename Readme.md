@@ -1,5 +1,5 @@
 # Deep Neural Network From Scratch
-
+ 
 - [Theory on Forward Pass](#theory-on-forward-pass)
   - [Forward Pass Code Implementation](#forward-pass-code-implementation)
 - [Activation Functions](#activation-functions)
